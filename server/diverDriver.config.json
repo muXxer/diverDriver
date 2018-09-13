@@ -1,0 +1,18 @@
+{
+  "fpga": {
+    "core": "pidiver1.1.rbf"
+  },
+  "log": {
+    "level": "DEBUG"
+  },
+  "pow": {
+    "maxminweightmagnitude": 14,
+    "type": "giota"
+  },
+  "server": {
+    "socketpath": "/tmp/diverDriver.sock"
+  },
+  "usb": {
+    "device": "/dev/ttyACM0"
+  }
+}
