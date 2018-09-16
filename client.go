@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	remotePoWClient "github.com/brunoamancio/remotePoW/client"
 	"github.com/iotaledger/giota"
 	"github.com/sigurn/crc8"
+	remotePoWClient "gitlab.com/brunoamancio/remotePoW/client"
 )
 
 // DiverClient is the client that connects to the diverDriver
