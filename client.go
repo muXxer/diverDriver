@@ -271,7 +271,9 @@ func doPow(p *DiverClient, trytes giota.Trytes, minWeightMagnitude int) (giota.T
 		if err != nil {
 			return "", err
 		}
-		return giota.Trytes(trytesWithPowString), err
+		// 2646 is the nounce offset in a transaction
+		nounce := trytesWithPowString[2646:]
+		return giota.Trytes(nounce), err
 	}
 
 	data := []byte{byte(minWeightMagnitude)}
