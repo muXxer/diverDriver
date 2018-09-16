@@ -4,9 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/url"
 	"sync"
 	"time"
 
+	remotePoWClient "github.com/brunoamancio/remotePoW/client"
 	"github.com/iotaledger/giota"
 	"github.com/sigurn/crc8"
 )
@@ -180,24 +182,72 @@ func (p *DiverClient) sendIpcFrameV1ToServer(command byte, data []byte) (respons
 	}
 }
 
+func (p *DiverClient) getServerVersion() (serverVersion string, Error error) {
+	isURL := isValidRemoteURL(p.DiverDriverPath)
+	if isURL {
+		serverVersionString, err := remotePoWClient.GetServerVersion(p.DiverDriverPath)
+		return serverVersionString, err
+	}
+
+	serverVersionBytes, err := p.sendIpcFrameV1ToServer(IpcCmdGetServerVersion, nil)
+	return string(serverVersionBytes), err
+}
+
+func (p *DiverClient) getPowType() (powType string, Error error) {
+	isURL := isValidRemoteURL(p.DiverDriverPath)
+	if isURL {
+		powTypeString, err := remotePoWClient.GetPoWType(p.DiverDriverPath)
+		return powTypeString, err
+	}
+
+	powTypeBytes, err := p.sendIpcFrameV1ToServer(IpcCmdGetPowType, nil)
+	return string(powTypeBytes), err
+}
+
+func (p *DiverClient) getPowVersion() (powVersion string, Error error) {
+	isURL := isValidRemoteURL(p.DiverDriverPath)
+	if isURL {
+		powVersionString, err := remotePoWClient.GetPoWVersion(p.DiverDriverPath)
+		return powVersionString, err
+	}
+
+	powVersionBytes, err := p.sendIpcFrameV1ToServer(IpcCmdGetPowVersion, nil)
+	return string(powVersionBytes), err
+}
+
+func (p *DiverClient) getRemotePowInfo() (serverVersion string, powType string, powVersion string, Error error) {
+	isURL := isValidRemoteURL(p.DiverDriverPath)
+	if isURL {
+		serverVersionString, powTypeString, powVersionString, err := remotePoWClient.GetPoWInfo(p.DiverDriverPath)
+		return serverVersionString, powTypeString, powVersionString, err
+	}
+
+	return "", "", "", errors.New("Invalid URL")
+}
+
 // GetPowInfo returns information about the diverDriver version, POW hardware type, and POW hardware version
 func (p *DiverClient) GetPowInfo() (ServerVersion string, PowType string, PowVersion string, Error error) {
-	serverVersion, err := p.sendIpcFrameV1ToServer(IpcCmdGetServerVersion, nil)
+	isURL := isValidRemoteURL(p.DiverDriverPath)
+	if isURL {
+		return p.getRemotePowInfo()
+	}
+
+	serverVersion, err := p.getServerVersion()
 	if err != nil {
 		return "", "", "", err
 	}
 
-	powType, err := p.sendIpcFrameV1ToServer(IpcCmdGetPowType, nil)
+	powType, err := p.getPowType()
 	if err != nil {
 		return "", "", "", err
 	}
 
-	powVersion, err := p.sendIpcFrameV1ToServer(IpcCmdGetPowVersion, nil)
+	powVersion, err := p.getPowVersion()
 	if err != nil {
 		return "", "", "", err
 	}
 
-	return string(serverVersion), string(powType), string(powVersion), nil
+	return serverVersion, powType, powVersion, nil
 }
 
 // PowFunc does the POW
@@ -206,18 +256,41 @@ func (p *DiverClient) PowFunc(trytes giota.Trytes, minWeightMagnitude int) (resu
 		return "", fmt.Errorf("minWeightMagnitude out of range [0-243]: %v", minWeightMagnitude)
 	}
 
-	data := []byte{byte(minWeightMagnitude)}
-	data = append(data, []byte(string(trytes))...)
-
-	response, err := p.sendIpcFrameV1ToServer(IpcCmdPowFunc, data)
-	if err != nil {
-		return "", err
-	}
-
-	result, err = giota.ToTrytes(string(response))
+	result, err := doPow(p, trytes, minWeightMagnitude)
 	if err != nil {
 		return "", err
 	}
 
 	return result, err
+}
+
+func doPow(p *DiverClient, trytes giota.Trytes, minWeightMagnitude int) (giota.Trytes, error) {
+	isURL := isValidRemoteURL(p.DiverDriverPath)
+	if isURL {
+		trytesWithPowString, err := remotePoWClient.DoRemotePoW(p.DiverDriverPath, string(trytes), minWeightMagnitude)
+		if err != nil {
+			return "", err
+		}
+		return giota.Trytes(trytesWithPowString), err
+	}
+
+	data := []byte{byte(minWeightMagnitude)}
+	data = append(data, []byte(string(trytes))...)
+
+	response, err := p.sendIpcFrameV1ToServer(IpcCmdPowFunc, data)
+	responseString := string(response)
+	if err != nil {
+		return "", err
+	}
+
+	return giota.ToTrytes(responseString)
+}
+
+func isValidRemoteURL(toTest string) bool {
+	uri, err := url.ParseRequestURI(toTest)
+	hostname := uri.Hostname()
+	if err != nil || hostname == "" {
+		return false
+	}
+	return true
 }
