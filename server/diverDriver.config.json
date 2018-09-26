@@ -10,7 +10,7 @@
     "type": "giota"
   },
   "server": {
-    "socketpath": "/tmp/diverDriver.sock"
+    "diverDriverPath": "/tmp/diverDriver.sock"
   },
   "usb": {
     "device": "/dev/ttyACM0"

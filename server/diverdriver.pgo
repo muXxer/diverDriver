@@ -17,9 +17,9 @@ import (
 	#ifdef FTDIVER
 	"github.com/muxxer/ftdiver"
 	#endif
-	
-	"github.com/muxxer/diverdriver/logs"
-	"github.com/muxxer/diverdriver"
+
+	"../logs"
+	"../server/ipc"
 )
 
 var config *viper.Viper
@@ -47,7 +47,7 @@ func loadConfig() *viper.Viper {
 
 	var logLevel = flag.StringP("log.level", "l", "INFO", "'DEBUG', 'INFO', 'NOTICE', 'WARNING', 'ERROR' or 'CRITICAL'")
 
-	flag.StringP("server.socketPath", "s", "/tmp/diverDriver.sock", "Unix socket path of diverDriver")
+	flag.StringP("server.diverDriverPath", "s", "/tmp/diverDriver.sock", "Unix socket path of diverDriver")
 
 	config.BindPFlags(flag.CommandLine)
 
@@ -213,19 +213,19 @@ func main() {
 		powType = "ftdiver"
 	#endif
 
-
+	
 	default:
 		logs.Log.Fatal("Unknown POW type")
 	}
 
-	diverdriver.SetPowFunc(powFunc)
+	ipcserver.SetPowFunc(powFunc)
 
 	// Servers should unlink the socket pathname prior to binding it.
 	// https://troydhanson.github.io/network/Unix_domain_sockets.html
-	syscall.Unlink(config.GetString("server.socketPath"))
+	syscall.Unlink(config.GetString("server.diverDriverPath"))
 
 	logs.Log.Info("Starting diverDriver...")
-	ln, err := net.Listen("unix", config.GetString("server.socketPath"))
+	ln, err := net.Listen("unix", config.GetString("server.diverDriverPath"))
 	if err != nil {
 		logs.Log.Fatal("Listen error:", err)
 	}
@@ -242,7 +242,7 @@ func main() {
 	}(ln, sigc)
 
 	logs.Log.Info("diverDriver started. Waiting for connections...")
-	logs.Log.Infof("Listening for connections on \"%v\"", config.GetString("server.socketPath"))
+	logs.Log.Infof("Listening for connections on \"%v\"", config.GetString("server.diverDriverPath"))
 	logs.Log.Infof("Using POW type: %v", powType)
 	for !exited {
 		fd, err := ln.Accept()
@@ -253,6 +253,6 @@ func main() {
 			logs.Log.Debugf("New connection accepted from \"%v\"", fd.RemoteAddr)
 		}
 
-		go diverdriver.HandleClientConnection(fd, config, powType, powVersion)
+		go ipcserver.HandleClientConnection(fd, config, powType, powVersion)
 	}
 }
