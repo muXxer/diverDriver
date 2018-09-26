@@ -3,9 +3,8 @@ package remoteclient
 import (
 	"fmt"
 
-	"../../common"
-
 	"github.com/iotaledger/giota"
+	"github.com/muxxer/diverdriver/common"
 	remotePoWClient "gitlab.com/brunoamancio/remotePoW/client"
 )
 
