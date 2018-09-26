@@ -1,4 +1,4 @@
-package diverdriver
+package client
 
 import (
 	"math/rand"
@@ -16,7 +16,7 @@ var transaction = "9999999999999999999999999999999999999999999999999999999999999
 
 func TestLocalPOW(t *testing.T) {
 	var localPath = "/tmp/diverDriver.sock"
-	diverClient := &DiverClient{DiverDriverPath: localPath, WriteTimeOutMs: 500, ReadTimeOutMs: 5000}
+	diverClient := Initialize(localPath, 500, 5000)
 
 	serverVersion, powType, powVersion, err := diverClient.GetPowInfo()
 	if err != nil {
@@ -51,7 +51,7 @@ func TestLocalPOW(t *testing.T) {
 
 func TestRemotePOW(t *testing.T) {
 	var remotePath = "http://192.168.178.101:16000"
-	diverClient := &DiverClient{DiverDriverPath: remotePath}
+	diverClient := Initialize(remotePath, 0, 0)
 
 	serverVersion, powType, powVersion, err := diverClient.GetPowInfo()
 	if err != nil {
