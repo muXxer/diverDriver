@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net"
 
-	"../../common"
-	"../../common/ipccommon"
-	"../../logs"
 	"github.com/iotaledger/giota"
+	"github.com/muxxer/diverdriver/common"
+	"github.com/muxxer/diverdriver/common/ipccommon"
+	"github.com/muxxer/diverdriver/logs"
 	"github.com/sigurn/crc8"
 	"github.com/spf13/viper"
 )

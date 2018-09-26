@@ -1,10 +1,10 @@
 package client
 
 import (
-	"../client/ipcclient"
-	"../client/remoteclient"
-	"../common"
-	"../utils"
+	"github.com/muxxer/diverdriver/client/ipcclient"
+	"github.com/muxxer/diverdriver/client/remoteclient"
+	"github.com/muxxer/diverdriver/common"
+	"github.com/muxxer/diverdriver/utils"
 )
 
 func Initialize(diverDriverPath string, writeTimeOutMs int64, readTimeOutMs int) *common.DiverClient {

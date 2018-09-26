@@ -18,8 +18,8 @@ import (
 	"github.com/muxxer/ftdiver"
 	#endif
 
-	"../logs"
-	"../server/ipc"
+	"github.com/muxxer/diverdriver/logs"
+	"github.com/muxxer/diverdriver/server/ipc"
 )
 
 var config *viper.Viper

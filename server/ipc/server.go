@@ -6,8 +6,7 @@ import (
 	"time"
 
 	"github.com/iotaledger/giota"
-
-	"../../logs"
+	"github.com/muxxer/diverdriver/logs"
 )
 
 var (
